@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import shutil
 from datetime import datetime
+from ingestion import Engine
+from sqlalchemy import create_engine
 
 def Clean_Customers(filename, 
                     raw_folder = 'Raw', 
@@ -9,6 +11,14 @@ def Clean_Customers(filename,
                     historic_folder = 'Historic',
                     timestamp_historic = True
                     ):
+
+    server = 'localhost'
+    database = 'library'
+    driver = 'ODBC Driver 17 for SQL Server'
+
+    connection_string = f'mssql+pyodbc://@{server}/{database}?trusted_connection=yes&Driver=ODBC+Driver+17+for+SQL+Server'
+
+    engine = create_engine(connection_string)
 
     # Ensure Folders Exist
     os.makedirs(raw_folder, exist_ok=True)
@@ -35,6 +45,7 @@ def Clean_Customers(filename,
     Customers = Customers[Customers['Customer ID'] %1 == 0]
     Customers['Customer ID'] = Customers['Customer ID'].astype(int)
 
+    Customers.to_sql('Customers', con=engine, if_exists='replace', index=False)
     Customers.to_csv(cleaned_path, index = False)
     shutil.move(raw_path, historic_path)
 
@@ -46,6 +57,14 @@ def Clean_Customers(filename,
 
 
 def Clean_System(filename):
+    server = 'localhost'
+    database = 'library'
+    driver = 'ODBC Driver 17 for SQL Server'
+
+    connection_string = f'mssql+pyodbc://@{server}/{database}?trusted_connection=yes&Driver=ODBC+Driver+17+for+SQL+Server'
+
+    engine = create_engine(connection_string)
+
     raw_folder = 'Raw'
     cleaned_folder = 'Cleaned'
     historic_folder = 'Historic'
@@ -77,8 +96,12 @@ def Clean_System(filename):
     System = System.dropna(subset=['Book Returned'])
     System['Rental_Length'] = System['Book Returned'] - System['Book checkout']
 
+    System.to_sql('System', con=engine, if_exists='replace', index=False)
     System.to_csv(cleaned_path, index = False)
     shutil.move(raw_path, historic_path)
+
+    print(f"System Cleaned to {cleaned_path}")
+    print(f"System Historic to {historic_path}")
 
     return
         

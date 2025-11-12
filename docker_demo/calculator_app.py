@@ -16,6 +16,6 @@ class Calculator:
         return self.a / self.b
     
 
-myCalc = Calculator(7,3)
+myCalc = Calculator(2,32)
 
-print(myCalc.get_quotient())
+print(myCalc.get_product())
